@@ -30,15 +30,12 @@ class frontendConfiguration extends sfApplicationConfiguration
     public function webLoadPanelEvent($event)
     {
         $debug = $event->getSubject();
-        $panels = $debug->getPanels();
-
-        $db_panel = new akWebDebugPanelPropel($debug);
-        $db_panel->setPanel($panels['db']);
+        $panel = new akWebDebugPanelPropel($debug);
 
         // デフォルトのexplain警告条件を差し替え
-        // $db_panel->setIsWarningCallable(array($this, 'isWarningExplain'));
+        // $panel->setIsWarningCallable(array($this, 'isWarningExplain'));
 
-        $debug->setPanel('db', $db_panel);
+        $debug->setPanel('db', $panel);
     }
 
     public function isWarningExplain($explain)

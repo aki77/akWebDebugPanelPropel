@@ -1,10 +1,10 @@
 <?php
 
-class akWebDebugPanelPropel extends sfWebDebugPanel
+class akWebDebugPanelPropel extends sfWebDebugPanelPropel
 {
-    protected $panel;
-
     protected $isWarningCallable;
+
+    protected $sqlLogs;
 
     /**
      * Constructor.
@@ -18,23 +18,13 @@ class akWebDebugPanelPropel extends sfWebDebugPanel
     }
 
     /**
-     * Gets the text for the link.
-     *
-     * @return string The link text
-     */
-    public function getTitle()
-    {
-        return $this->panel->getTitle();
-    }
-
-    /**
      * Gets the title of the panel.
      *
      * @return string The panel title
      */
     public function getPanelTitle()
     {
-        return $this->panel->getPanelTitle() . ' with explain';
+        return parent::getPanelTitle() . ' with explain';
     }
 
     /**
@@ -44,10 +34,10 @@ class akWebDebugPanelPropel extends sfWebDebugPanel
      */
     public function getPanelContent()
     {
-        $content = $this->panel->getPanelContent();
+        $content = parent::getPanelContent();
         $query_count = substr_count($content, 'sfWebDebugDatabaseQuery');
 
-        $config = Propel::getConfiguration(PropelConfiguration::TYPE_OBJECT);
+        $config = $this->getPropelConfiguration();
         $query_count_limit = $config->getParameter('debugpdo.logging.query_count', 0);
 
         if ($query_count_limit > 0 && $query_count >= $query_count_limit && $this->getStatus() > sfLogger::NOTICE) {
@@ -59,11 +49,6 @@ class akWebDebugPanelPropel extends sfWebDebugPanel
             array($this, 'appendExplain'),
             $content
         );
-    }
-
-    public function setPanel(sfWebDebugPanelPropel $panel)
-    {
-        $this->panel = $panel;
     }
 
     public function appendExplain($matches)
@@ -94,7 +79,7 @@ class akWebDebugPanelPropel extends sfWebDebugPanel
     }
 
     /**
-     * getToggleableDebugStack
+     * getToggleableExplain
      *
      * @param  array $explain
      * @return string
@@ -155,5 +140,19 @@ class akWebDebugPanelPropel extends sfWebDebugPanel
         }
 
         $this->isWarningCallable = $callable;
+    }
+
+    /**
+     * Builds the sql logs and returns them as an array.
+     *
+     * @return array
+     */
+    protected function getSqlLogs()
+    {
+        if ($this->sqlLogs === null) {
+            $this->sqlLogs = parent::getSqlLogs();
+        }
+
+        return $this->sqlLogs;
     }
 }
