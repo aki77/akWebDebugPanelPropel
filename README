@@ -1,0 +1,72 @@
+akWebDebugPanelPropel
+==============
+
+sfWebDebugPanelPropel に以下の表示を追加します。
+
+ * Explain結果の表示・警告
+ * 指定回数以上のクエリが発行された場合の警告
+
+
+Example
+=======
+
+frontendConfiguration.class.php
+
+<?php
+
+class frontendConfiguration extends sfApplicationConfiguration
+{
+    public function configure()
+    {
+    }
+
+    public function initialize()
+    {
+        if (sfConfig::get('sf_web_debug')) {
+            $this->dispatcher->connect('debug.web.load_panels', array($this, 'webLoadPanelEvent'));
+        }
+    }
+
+    public function webLoadPanelEvent($event)
+    {
+        $debug = $event->getSubject();
+        $panels = $debug->getPanels();
+
+        $db_panel = new akWebDebugPanelPropel($debug);
+        $db_panel->setPanel($panels['db']);
+
+        // デフォルトのexplain警告条件を差し替え
+        // $db_panel->setIsWarningCallable(array($this, 'isWarningExplain'));
+
+        $debug->setPanel('db', $db_panel);
+    }
+
+    public function isWarningExplain($explain)
+    {
+        foreach ($explain as $v) {
+            if ($v['type'] == 'ALL' || preg_match('!filesort|temporary!', $v['Extra'])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
+
+databases.yml
+
+dev:
+  propel:
+    param:
+      classname:  DebugPDO
+      debug:
+        realmemoryusage: true
+        dsn: true
+        query_count:  20
+        details:
+          time:       { enabled: true }
+          slow:       { enabled: true, threshold: 0.1 }
+          mem:        { enabled: true }
+          mempeak:    { enabled: true }
+          memdelta:   { enabled: true }
