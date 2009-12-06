@@ -121,12 +121,14 @@ class akWebDebugPanelPropel extends sfWebDebugPanelPropel
 
     protected function isWarningExplain($explain)
     {
-        foreach ($explain as $v) {
-            if (
-                in_array($v['type'], array('index', 'ALL')) ||
-                preg_match('!filesort|temporary!', $v['Extra'])
-            ) {
-                return true;
+        $config = $this->getPropelConfiguration();
+        $cond = $config->getParameter('debugpdo.logging.explain', array());
+
+        foreach ($explain as $row) {
+            foreach ($cond as $field => $pattern) {
+                if (preg_match($pattern, $row[$field])) {
+                    return true;
+                }
             }
         }
 

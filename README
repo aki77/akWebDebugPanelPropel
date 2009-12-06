@@ -61,6 +61,9 @@ dev:
         realmemoryusage: true
         dsn: true
         query_count:  20
+        explain:
+          type:  '/index|ALL/'
+          Extra: '/filesort|temporary/'
         details:
           time:       { enabled: true }
           slow:       { enabled: true, threshold: 0.1 }
