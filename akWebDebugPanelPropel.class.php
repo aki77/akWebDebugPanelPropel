@@ -54,21 +54,26 @@ class akWebDebugPanelPropel extends sfWebDebugPanelPropel
     public function appendExplain($matches)
     {
         list($null, $warning, $query) = $matches;
-        $raw_query = strip_tags(htmlspecialchars_decode($query, ENT_QUOTES));
+        $raw_query = htmlspecialchars_decode(strip_tags($query), ENT_QUOTES);
 
-        if (strpos($raw_query, 'SET NAMES') !== 0) {
-            $explain = Propel::getConnection(null, Propel::CONNECTION_READ)
-                ->query('EXPLAIN ' . $raw_query)
-                ->fetchAll(PDO::FETCH_ASSOC);
+        if (!$this->isIgnoreQuery($raw_query)) {
+            try {
+                $explain = Propel::getConnection(null, Propel::CONNECTION_READ)
+                    ->query('EXPLAIN ' . $raw_query)
+                    ->fetchAll(PDO::FETCH_ASSOC);
 
-            if (call_user_func($this->isWarningCallable, $explain)) {
-                $warning = 'sfWebDebugWarning';
-                if ($this->getStatus() > sfLogger::NOTICE) {
-                    $this->setStatus(sfLogger::NOTICE);
+                if (call_user_func($this->isWarningCallable, $explain)) {
+                    $warning = 'sfWebDebugWarning';
+                    if ($this->getStatus() > sfLogger::NOTICE) {
+                        $this->setStatus(sfLogger::NOTICE);
+                    }
                 }
-            }
 
-            $query .= '&nbsp;' . $this->getToggleableExplain($explain);
+                $query .= '&nbsp;' . $this->getToggleableExplain($explain);
+            } catch (Exception $e) {
+                // 疑問符プレースホルダを使用するプリペアドステートメントを直接実行した場合
+                // SQLログがパラメータをバインドしない状態で保存されている
+            }
         }
 
         return sprintf(
@@ -156,5 +161,16 @@ class akWebDebugPanelPropel extends sfWebDebugPanelPropel
         }
 
         return $this->sqlLogs;
+    }
+
+    /**
+     * isIgnoreQuery
+     *
+     * @param string $query
+     * @return bool
+     */
+    protected function isIgnoreQuery($query)
+    {
+        return strpos(strtolower($query), 'set names') === 0;
     }
 }
