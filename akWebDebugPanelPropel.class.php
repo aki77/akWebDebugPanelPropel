@@ -70,7 +70,7 @@ class akWebDebugPanelPropel extends sfWebDebugPanelPropel
                 }
 
                 $query .= '&nbsp;' . $this->getToggleableExplain($explain);
-            } catch (Exception $e) {
+            } catch (PDOException $e) {
                 // 疑問符プレースホルダを使用するプリペアドステートメントを直接実行した場合
                 // SQLログがパラメータをバインドしない状態で保存されている
             }
