@@ -45,12 +45,15 @@ class akWebDebugPanelPropel extends sfWebDebugPanelPropel
         }
 
         return preg_replace_callback(
-            '!<li class="(.*?)">\s*<p class="sfWebDebugDatabaseQuery">(.*?)</p>!',
+            '!<li(?: class="(.*?)")?>\s*<p class="sfWebDebugDatabaseQuery">(.*?)</p>!',
             array($this, 'appendExplain'),
             $content
         );
     }
 
+    /**
+     * appendExplain
+     */
     public function appendExplain($matches)
     {
         list($null, $warning, $query) = $matches;
@@ -71,7 +74,7 @@ class akWebDebugPanelPropel extends sfWebDebugPanelPropel
 
                 $query .= '&nbsp;' . $this->getToggleableExplain($explain);
             } catch (PDOException $e) {
-                // 疑問符プレースホルダを使用するプリペアドステートメントを直接実行した場合
+                // SQLを直接実行した場合
                 // SQLログがパラメータをバインドしない状態で保存されている
             }
         }
